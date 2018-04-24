@@ -49,7 +49,7 @@ public class View extends javax.swing.JFrame {
                 });
     }
 
-    private static void ordenar(final String metodo, final JTable tabelaReferencia, final JTable tabelaDestino) {
+    private static void ordenar(final String metodo, final JTable tabelaReferencia, final JTable tabelaDestino, boolean ascendente) {
         if (tabelaReferencia.getRowCount() > 0) {
             List numeros = new ArrayList<Integer>();
             for (int i = 0; i < tabelaReferencia.getRowCount(); i++) {
@@ -63,49 +63,73 @@ public class View extends javax.swing.JFrame {
             switch (metodo) {
                 case "Quick sort": {
                     tempoGasto = System.currentTimeMillis();
-                    Ordenacoes.quickSort(numeros, true, registro);
+                    Ordenacoes.quickSort(numeros, ascendente, registro);
                     registro.tempoGasto = System.currentTimeMillis() - tempoGasto;
                     registro.metodo = "Quick sort";
+                    registro.inPlace = "N";
+                    registro.estavel = "N";
+                    registro.complexidade = "O(n²)";
+                    registro.otimo = "N";
                     inserirLinhaTabelaSaida(registro);
                 }
                 break;
                 case "Merge sort": {
                     tempoGasto = System.currentTimeMillis();
-                    Ordenacoes.mergeSort(numeros, true, registro);
+                    Ordenacoes.mergeSort(numeros, ascendente, registro);
                     registro.tempoGasto = System.currentTimeMillis() - tempoGasto;
                     registro.metodo = "Merge sort";
+                    registro.inPlace = "N";
+                    registro.estavel = "S";
+                    registro.complexidade = "Teta(nLog(n))";
+                    registro.otimo = "S";
                     inserirLinhaTabelaSaida(registro);
                 }
                 break;
                 case "Bublle sort": {
                     tempoGasto = System.currentTimeMillis();
-                    Ordenacoes.bubleSort(numeros, true, registro);
+                    Ordenacoes.bubleSort(numeros, ascendente, registro);
                     registro.tempoGasto = System.currentTimeMillis() - tempoGasto;
                     registro.metodo = "Bublle sort";
+                    registro.inPlace = "S";
+                    registro.estavel = "S";
+                    registro.complexidade = "O(n²)";
+                    registro.otimo = "N";
                     inserirLinhaTabelaSaida(registro);
                 }
                 break;
                 case "Selection sort": {
                     tempoGasto = System.currentTimeMillis();
-                    Ordenacoes.selectionSort(numeros, true, registro);
+                    Ordenacoes.selectionSort(numeros, ascendente, registro);
                     registro.tempoGasto = System.currentTimeMillis() - tempoGasto;
                     registro.metodo = "Selection sort";
+                    registro.inPlace = "S";
+                    registro.estavel = "N";
+                    registro.complexidade = "O(n²)";
+                    registro.otimo = "N";
                     inserirLinhaTabelaSaida(registro);
                 }
                 break;
                 case "Shell sort": {
                     tempoGasto = System.currentTimeMillis();
-                    Ordenacoes.shellSort(numeros, true, registro);
+                    Ordenacoes.shellSort(numeros, ascendente, registro);
                     registro.tempoGasto = System.currentTimeMillis() - tempoGasto;
                     registro.metodo = "Shell sort";
+                    registro.inPlace = "S";
+                    registro.estavel = "N";
+                    registro.complexidade = "O(n²)";
+                    registro.otimo = "N";
                     inserirLinhaTabelaSaida(registro);
                 }
                 break;
                 case "Insertion sort": {
                     tempoGasto = System.currentTimeMillis();
-                    Ordenacoes.insertionSort(numeros, true, registro);
+                    Ordenacoes.insertionSort(numeros, ascendente, registro);
                     registro.tempoGasto = System.currentTimeMillis() - tempoGasto;
                     registro.metodo = "Insertion sort";
+                    registro.inPlace = "S";
+                    registro.estavel = "S";
+                    registro.complexidade = "O(n²)";
+                    registro.otimo = "N";
                     inserirLinhaTabelaSaida(registro);
                 }
                 break;
@@ -122,22 +146,25 @@ public class View extends javax.swing.JFrame {
 
         tabela.setModel(model);
 
-        numeros.stream().map(numero -> new Object[]{numero}).forEach(model::addRow);
+        SwingUtilities.invokeLater(() -> numeros.stream().map(numero -> new Object[]{numero}).forEach(model::addRow));
     }
 
     private static void preencherTabelaEntradaAutomaticamente(final JTable tabela, int quantidade, boolean aleatoriamente) {
         tabela.removeAll();
         DefaultTableModel model = getModelTabEntradaDestino("Numeros Obtidos");
         Random rd = new Random();
-        int val;
-        for (int i = quantidade; i > 0; i--) {
-            val = i;
-            if (aleatoriamente) {
-                val = rd.nextInt(i);
+
+        SwingUtilities.invokeLater(() -> {
+            int val;
+            for (int i = quantidade; i > 0; i--) {
+                val = i;
+                if (aleatoriamente) {
+                    val = rd.nextInt(i);
+                }
+                model.addRow(new Object[]{val});
             }
-            model.addRow(new Object[]{val});
-        }
-        tabela.setModel(model);
+            tabela.setModel(model);
+        });
 
     }
 
@@ -146,10 +173,13 @@ public class View extends javax.swing.JFrame {
             tabelaEntrada.removeAll();
             DefaultTableModel model = getModelTabEntradaDestino("Numeros Obtidos");
             final Stream<String> stringStream = Files.lines(path);
-            stringStream.forEach(val -> {
-                model.addRow(new Object[]{Integer.valueOf(val)});
+            SwingUtilities.invokeLater(() -> {
+                stringStream.forEach(val ->
+                        model.addRow(new Object[]{Integer.valueOf(val)})
+                );
+                tabelaEntrada.setModel(model);
             });
-            tabelaEntrada.setModel(model);
+
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -172,16 +202,19 @@ public class View extends javax.swing.JFrame {
     }
 
     private static void inserirLinhaTabelaSaida(final RegistroSaida registroSaida) {
-        DefaultTableModel model = (DefaultTableModel) tabelaDadosSaida.getModel();
-        model.addRow(new Object[]{registroSaida.numItens,
-                registroSaida.metodo,
-                registroSaida.comparacoes,
-                registroSaida.numTrocas,
-                registroSaida.complexidade,
-                registroSaida.otimo,
-                registroSaida.estavel,
-                registroSaida.inPlace,
-                registroSaida.tempoGasto});
+        SwingUtilities.invokeLater(() -> {
+            DefaultTableModel model = (DefaultTableModel) tabelaDadosSaida.getModel();
+            model.addRow(new Object[]{registroSaida.numItens,
+                    registroSaida.metodo,
+                    registroSaida.comparacoes,
+                    registroSaida.numTrocas,
+                    registroSaida.complexidade,
+                    registroSaida.otimo,
+                    registroSaida.estavel,
+                    registroSaida.inPlace,
+                    registroSaida.tempoGasto});
+        });
+
     }
 
 
@@ -199,8 +232,10 @@ public class View extends javax.swing.JFrame {
         JTable tabelaOrdenada = new JTable();
         JComboBox<String> comboMetodo = new JComboBox<>();
         JComboBox<String> comboQuantidade = new JComboBox<>();
+        JComboBox<String> comboOrdem = new javax.swing.JComboBox<>();
         comboMetodo.setModel(new DefaultComboBoxModel<>(new String[]{"Quick sort", "Merge sort", "Bublle sort", "Selection sort", "Shell sort", "Insertion sort"}));
         comboQuantidade.setModel(new DefaultComboBoxModel<>(new String[]{"500", "1000", "10000", "50000"}));
+        comboOrdem.setModel(new javax.swing.DefaultComboBoxModel<>(new String[]{"Ascendente", "Descendente"}));
 
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
 
@@ -221,7 +256,9 @@ public class View extends javax.swing.JFrame {
 
         btnOrdenar.addActionListener((actionEvent) -> {
             String metodo = comboMetodo.getItemAt(comboMetodo.getSelectedIndex());
-            ordenar(metodo, tabelaEntrada, tabelaOrdenada);
+            String asc = comboOrdem.getItemAt(comboOrdem.getSelectedIndex());
+            boolean ascendente = asc.equals("Ascendente");
+            ordenar(metodo, tabelaEntrada, tabelaOrdenada, ascendente);
         });
 
 
@@ -263,55 +300,59 @@ public class View extends javax.swing.JFrame {
         jScrollPane3.setViewportView(tabelaOrdenada);
 
 
-        GroupLayout layout = new GroupLayout(getContentPane());
+        javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
-                layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                         .addGroup(layout.createSequentialGroup()
                                 .addContainerGap()
-                                .addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                                         .addComponent(jScrollPane2)
-                                        .addGroup(GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                                                .addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING, false)
+                                        .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                                                         .addGroup(layout.createSequentialGroup()
                                                                 .addComponent(btnAbrir)
-                                                                .addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED)
-                                                                .addComponent(comboQuantidade, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-                                                                .addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED)
+                                                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                                                .addComponent(comboQuantidade, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                                                                 .addComponent(btnEntradaSequencial)
                                                                 .addGap(12, 12, 12)
                                                                 .addComponent(btnEntradaAleatoria))
-                                                        .addComponent(jScrollPane1, GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE))
-                                                .addGap(18, 18, 18)
-                                                .addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                                                        .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE))
+                                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                                                         .addGroup(layout.createSequentialGroup()
-                                                                .addGap(0, 230, Short.MAX_VALUE)
-                                                                .addComponent(comboMetodo, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-                                                                .addGap(18, 18, 18)
+                                                                .addGap(0, 0, Short.MAX_VALUE)
+                                                                .addComponent(comboMetodo, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                                                .addComponent(comboOrdem, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                                                                 .addComponent(btnOrdenar))
-                                                        .addComponent(jScrollPane3, GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE))))
+                                                        .addComponent(jScrollPane3, javax.swing.GroupLayout.DEFAULT_SIZE, 437, Short.MAX_VALUE))))
                                 .addContainerGap())
         );
         layout.setVerticalGroup(
-                layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                         .addGroup(layout.createSequentialGroup()
                                 .addContainerGap()
-                                .addGroup(layout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                                         .addComponent(btnAbrir)
                                         .addComponent(btnEntradaAleatoria)
                                         .addComponent(btnOrdenar)
-                                        .addComponent(comboMetodo, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-                                        .addComponent(comboQuantidade, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-                                        .addComponent(btnEntradaSequencial))
-                                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
-                                .addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING, false)
-                                        .addComponent(jScrollPane1, GroupLayout.DEFAULT_SIZE, 209, Short.MAX_VALUE)
-                                        .addComponent(jScrollPane3, GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE))
-                                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                .addComponent(jScrollPane2, GroupLayout.PREFERRED_SIZE, 209, GroupLayout.PREFERRED_SIZE)
+                                        .addComponent(comboMetodo, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                        .addComponent(comboQuantidade, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                        .addComponent(btnEntradaSequencial)
+                                        .addComponent(comboOrdem, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                                        .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 209, Short.MAX_VALUE)
+                                        .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE))
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 209, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addContainerGap())
         );
 
         pack();
+        this.setResizable(false);
     }
 }
