@@ -156,10 +156,6 @@ public class Ordenacoes {
 
 
         final List<Comparable> listAux = new ArrayList<>(listAOrdenar);
-        for (int i = inicio; i <= fim; i++) {
-            listAux.set(i, listAOrdenar.get(i));
-        }
-
 
         int i = inicio, j = meio + 1, k = inicio;
         Comparable elementoA;
