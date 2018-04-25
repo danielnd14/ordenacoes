@@ -44,7 +44,7 @@ public class Ordenacoes {
                 }
             }
             registro.incrementaTrocas();
-            trocarPosicoes(listAOrdenar, i, min);
+            trocarPosicoes(listAOrdenar, i, min, registro);
         }
 
 
@@ -59,7 +59,7 @@ public class Ordenacoes {
                 elementoB = listAOrdenar.get(j + 1);
                 if (comparar(elementoA, elementoB, ascendente, registro) > 0) {
                     registro.incrementaTrocas();
-                    trocarPosicoes(listAOrdenar, j, j + 1);
+                    trocarPosicoes(listAOrdenar, j, j + 1, registro);
                 }
             }
         }
@@ -80,7 +80,7 @@ public class Ordenacoes {
                     elementoB = listAOrdenar.get(j + 1);
                     if (comparar(elementoA, elementoB, ascendente, registro) > 0) {
                         registro.incrementaTrocas();
-                        trocarPosicoes(listAOrdenar, j, j + 1);
+                        trocarPosicoes(listAOrdenar, j, j + 1, registro);
                         continuar = true;
                     }
                 }
@@ -91,47 +91,35 @@ public class Ordenacoes {
 
     public static void quickSort(final List<Comparable> listAOrdenar, final boolean ascendente, final RegistroSaida registro) {
         int inicio = 0;
-        int fim = listAOrdenar.size();
+        int fim = listAOrdenar.size()-1;
         quickSort(listAOrdenar, inicio, fim, ascendente, registro);
     }
 
-    public static void quickSort(final List<Comparable> listAOrdenar, int inicio, int fim, final boolean ascendente, final RegistroSaida registro) {
-        int i, j;
+    private static void quickSort(List<Comparable> listAOrdenar, int inicio, int fim, boolean ascendente, RegistroSaida registro) {
+        if (inicio < fim) {
+            int posicaoPivo = separar(listAOrdenar, inicio, fim, ascendente, registro);
+            quickSort(listAOrdenar, inicio, posicaoPivo - 1, ascendente, registro);
+            quickSort(listAOrdenar, posicaoPivo + 1, fim, ascendente, registro);
+        }
+    }
 
-        i = inicio;
-        j = fim - 1;
-        Comparable elementoI;
-        Comparable elementoJ;
-        Comparable elementoM = listAOrdenar.get(((inicio + fim) / 2));
-
-        while (i <= j) {
-            elementoI = listAOrdenar.get(i);
-            elementoJ = listAOrdenar.get(j);
-
-            while (comparar(elementoI, elementoM, ascendente, registro) < 0 && i < fim) {
+    private static int separar(List<Comparable> listAOrdenar, int inicio, int fim, boolean ascendente, RegistroSaida registro) {
+        Comparable pivo = listAOrdenar.get(inicio);
+        int i = inicio + 1, f = fim;
+        while (i <= f) {
+            if (comparar(listAOrdenar.get(i), pivo, ascendente, registro) <= 0)
                 i++;
-                elementoI = listAOrdenar.get(i);
-            }
-            while (comparar(elementoJ, elementoM, ascendente, registro) > 0 && j > inicio) {
-                j--;
-                elementoJ = listAOrdenar.get(j);
-            }
-
-            if (i <= j) {
-                registro.incrementaTrocas();
-                trocarPosicoes(listAOrdenar, i, j);
+            else if (comparar(pivo, listAOrdenar.get(f), ascendente, registro) < 0)
+                f--;
+            else {
+                trocarPosicoes(listAOrdenar, i, f, registro);
                 i++;
-                j--;
-            }
-
-            if (j > inicio) {
-                quickSort(listAOrdenar, inicio, j + 1, ascendente, registro);
-            }
-            if (i < fim) {
-                quickSort(listAOrdenar, i, fim, ascendente, registro);
-
+                f--;
             }
         }
+        listAOrdenar.set(inicio, listAOrdenar.get(f));
+        listAOrdenar.set(f, pivo);
+        return f;
     }
 
     public static void mergeSort(final List<Comparable> listAOrdenar, final boolean ascendente, final RegistroSaida registro) {
@@ -195,7 +183,8 @@ public class Ordenacoes {
         return elementoA.compareTo(elementoB) * -1;
     }
 
-    private static void trocarPosicoes(List<Comparable> list, int posicaoA, int posicaoB) {
+    private static void trocarPosicoes(List<Comparable> list, int posicaoA, int posicaoB, RegistroSaida registro) {
+        registro.incrementaTrocas();
         Comparable elementoA = list.get(posicaoA);
         list.set(posicaoA, list.get(posicaoB));
         list.set(posicaoB, elementoA);
